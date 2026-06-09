@@ -12,6 +12,8 @@ export const envSchema = z.object({
   DISCORD_BOT_TOKEN: z.string().min(1, "DISCORD_BOT_TOKEN es obligatorio"),
   DISCORD_CLIENT_ID: z.string().min(1, "DISCORD_CLIENT_ID es obligatorio"),
   DISCORD_CLIENT_SECRET: z.string().min(1, "DISCORD_CLIENT_SECRET es obligatorio"),
+  // Opcional: id del servidor para registro instantáneo de slash commands en desarrollo.
+  DISCORD_DEV_GUILD_ID: z.string().optional(),
 
   // Servicios de datos
   DATABASE_URL: z.string().url("DATABASE_URL debe ser una URL válida"),
