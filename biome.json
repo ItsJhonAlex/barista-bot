@@ -7,7 +7,16 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist", "build", "coverage", "node_modules", ".claude", ".remember", "docs"]
+    "ignore": [
+      "dist",
+      "build",
+      "coverage",
+      "node_modules",
+      ".claude",
+      ".remember",
+      "docs",
+      "**/migrations"
+    ]
   },
   "formatter": {
     "enabled": true,

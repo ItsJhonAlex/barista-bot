@@ -1,0 +1,26 @@
+# Infraestructura local de Barista. En el Sprint 0 (S0.2) solo Postgres; Redis se añade en
+# S0.5 y los servicios de aplicación (bot/api/dashboard) en S0.7. Postgres se expone a
+# localhost para ejecutar drizzle-kit y los tests desde el host durante el desarrollo; el
+# endurecimiento de red (solo red interna) llega en S0.7.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: barista-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: barista
+      POSTGRES_PASSWORD: barista
+      POSTGRES_DB: barista
+    ports:
+      - "5432:5432"
+    volumes:
+      - barista-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barista -d barista"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  barista-pgdata:
