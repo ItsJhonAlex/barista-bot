@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { loadEnv } from "@barista/config";
 import {
   ApplicationCommandRegistries,
@@ -21,6 +22,10 @@ ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior
 // Intents mínimos: para slash commands basta `Guilds`. Los intents privilegiados
 // (MessageContent, GuildMembers, Presence) se añadirán cuando un módulo los necesite (S0.4).
 const client = new SapphireClient({
+  // Fijamos el directorio base explícitamente: en ESM/Bun, Sapphire lo deduciría de
+  // `process.cwd()` (la raíz del monorepo) y no encontraría `commands/`. Apuntamos a este
+  // mismo directorio (`apps/bot/src`), donde viven las piezas (commands, listeners, …).
+  baseUserDirectory: fileURLToPath(new URL(".", import.meta.url)),
   intents: [GatewayIntentBits.Guilds],
   logger: { level: env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info },
 });
