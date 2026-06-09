@@ -1,0 +1,29 @@
+# Normalize line endings to LF on checkin; let git handle checkout.
+* text=auto eol=lf
+
+# Explicit text files
+*.ts    text
+*.tsx   text
+*.js    text
+*.mjs   text
+*.json  text
+*.md    text
+*.yml   text
+*.yaml  text
+*.sql   text
+
+# Binary files (never normalize)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+
+# Lockfiles: generated, collapse in diffs and reviews
+bun.lock      linguist-generated=true -diff
+bun.lockb     binary linguist-generated=true -diff
+package-lock.json linguist-generated=true -diff
+pnpm-lock.yaml    linguist-generated=true -diff

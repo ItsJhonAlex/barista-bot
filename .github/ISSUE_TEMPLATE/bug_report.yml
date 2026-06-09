@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a defect in Barista
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please do **not** include secrets
+        (tokens, OAuth credentials) in this report.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and its impact.
+      placeholder: When I toggle a module from the dashboard, ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps so we can reproduce the issue.
+      placeholder: |
+        1. Go to '...'
+        2. Click '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - "bot"
+        - "api"
+        - "dashboard"
+        - "core"
+        - "db"
+        - "discord"
+        - "config"
+        - "unsure"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Bun version, commit/branch, and anything else relevant.
+      placeholder: |
+        - OS:
+        - Bun:
+        - Commit/branch:
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste any relevant log output. Redact secrets first.
+      render: shell
+    validations:
+      required: false
