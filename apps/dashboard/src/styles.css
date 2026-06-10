@@ -1,0 +1,377 @@
+/* Barista · sistema café/lofi (docs/08). Tokens primero, luego base y componentes. */
+
+:root {
+  /* superficies */
+  --crema: #f3ede2;
+  --latte: #fbf7ef;
+  --espuma: #ffffff;
+  /* tinta */
+  --espresso: #2a211c;
+  --cafe-suave: #6f6358;
+  /* acentos */
+  --terracota: #c0623f;
+  --terracota-700: #9e4e31;
+  --matcha: #7c8b5a;
+  --miel: #d6a23e;
+  --granate: #a23b34;
+  /* línea y sombra cálida */
+  --borde: #e4dacb;
+  --sombra: 0 1px 2px rgba(42, 33, 28, 0.06), 0 8px 24px rgba(42, 33, 28, 0.06);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+
+  --display: "Fraunces", Georgia, serif;
+  --ui: "Karla", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ui);
+  color: var(--espresso);
+  background-color: var(--crema);
+  /* grano de papel apenas perceptible */
+  background-image: radial-gradient(rgba(42, 33, 28, 0.025) 1px, transparent 1px);
+  background-size: 3px 3px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* foco de teclado: anillo terracota */
+:focus-visible {
+  outline: 2px solid var(--terracota);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cafe-suave);
+  font-weight: 600;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  color: var(--cafe-suave);
+}
+
+/* ============================ Login ============================ */
+.login {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.login__card {
+  max-width: 420px;
+  text-align: center;
+}
+.login__mark {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 2.5rem;
+  letter-spacing: -0.01em;
+}
+.login__mark::first-letter {
+  color: var(--terracota);
+}
+.login__tagline {
+  color: var(--cafe-suave);
+  margin: 8px 0 28px;
+  font-size: 1.05rem;
+}
+.btn-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: var(--terracota);
+  color: var(--espuma);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 13px 22px;
+  border-radius: var(--r-md);
+  box-shadow: var(--sombra);
+  transition: background 160ms ease-out, transform 160ms ease-out;
+}
+.btn-discord:hover {
+  background: var(--terracota-700);
+  transform: translateY(-1px);
+}
+
+/* ============================ Shell ============================ */
+.shell {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--latte);
+  border-bottom: 1px solid var(--borde);
+}
+.topbar__brand {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+.topbar__brand::first-letter {
+  color: var(--terracota);
+}
+.topbar__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cafe-suave);
+  font-size: 0.9rem;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  object-fit: cover;
+}
+.btn-ghost {
+  border: 1px solid var(--borde);
+  background: var(--espuma);
+  color: var(--cafe-suave);
+  border-radius: var(--r-sm);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+}
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ====================== Estantería de servidores ====================== */
+.shelf {
+  border-right: 1px solid var(--borde);
+  padding: 20px 14px;
+  background: linear-gradient(180deg, var(--latte), var(--crema));
+}
+.shelf__title {
+  margin: 0 8px 12px;
+}
+.mug {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  color: var(--espresso);
+  transition: background 140ms ease-out, border-color 140ms ease-out;
+}
+.mug:hover {
+  background: var(--espuma);
+}
+.mug--active {
+  background: var(--espuma);
+  border-color: var(--borde);
+  box-shadow: var(--sombra);
+}
+.mug__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--crema);
+  border: 1px solid var(--borde);
+  font-family: var(--display);
+  font-weight: 600;
+  color: var(--terracota);
+  overflow: hidden;
+}
+.mug__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mug__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+.mug__meta {
+  font-size: 0.78rem;
+  color: var(--cafe-suave);
+}
+
+/* ============================ Carta / módulos ============================ */
+.main {
+  padding: 32px 36px;
+}
+.page-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 2rem;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.page-sub {
+  color: var(--cafe-suave);
+  margin: 0 0 28px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+/* La ficha de módulo — elemento firma */
+.card {
+  position: relative;
+  background: var(--latte);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  padding: 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out, border-color 180ms ease-out;
+}
+.card::before {
+  /* la "lámpara sobre la barra": luz cálida en el borde superior, solo si activo */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, var(--terracota), transparent);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+.card--active {
+  border-color: #ddcdb6;
+  box-shadow: 0 1px 2px rgba(42, 33, 28, 0.06), 0 10px 30px rgba(192, 98, 63, 0.1);
+}
+.card--active::before {
+  opacity: 1;
+}
+.card__name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 2px 0 0;
+}
+.card__desc {
+  color: var(--cafe-suave);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  flex: 1;
+}
+.card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* ToggleCup: la taza que se llena */
+.cup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--borde);
+  background: var(--espuma);
+  border-radius: 999px;
+  padding: 6px 14px 6px 8px;
+  transition: border-color 160ms ease-out, background 160ms ease-out;
+}
+.cup:hover:not(:disabled) {
+  border-color: #d6c7b0;
+}
+.cup:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.cup__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.cup--active .cup__label {
+  color: var(--matcha);
+}
+.cup--paused .cup__label {
+  color: var(--cafe-suave);
+}
+.cup__svg .fill {
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+  transform-origin: bottom;
+}
+.cup--paused .cup__svg .fill {
+  transform: scaleY(0.08);
+  opacity: 0.25;
+}
+.cup--active .cup__svg .fill {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+.state {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--cafe-suave);
+  padding: 40px;
+  text-align: center;
+}
+.empty {
+  border: 1px dashed var(--borde);
+  border-radius: var(--r-lg);
+  padding: 40px;
+  text-align: center;
+  color: var(--cafe-suave);
+}
+.error-banner {
+  background: #f7e9e7;
+  border: 1px solid #e8c7c1;
+  color: var(--granate);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}

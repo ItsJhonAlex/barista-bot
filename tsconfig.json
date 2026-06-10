@@ -3,5 +3,7 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["apps/*/src/**/*.ts", "packages/*/src/**/*.ts"]
+  "include": ["apps/*/src/**/*.ts", "packages/*/src/**/*.ts"],
+  "comment": "El dashboard (React) usa tipos DOM/Vite y JSX; se typechquea con su propio tsconfig.",
+  "exclude": ["apps/dashboard"]
 }

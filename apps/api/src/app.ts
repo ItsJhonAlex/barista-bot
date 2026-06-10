@@ -1,6 +1,7 @@
 import { guilds } from "@barista/db/schema";
 import { inArray } from "drizzle-orm";
 import { type Handler, Hono } from "hono";
+import { cors } from "hono/cors";
 import { getDiscordToken } from "./accounts.ts";
 import { auth } from "./auth.ts";
 import { publisher } from "./bus.ts";
@@ -8,9 +9,20 @@ import { db } from "./db.ts";
 import { fetchAdminGuilds } from "./discord-guilds.ts";
 import { env } from "./env.ts";
 import { type AuthVars, requireGuildAdmin, requireSession } from "./middleware.ts";
-import { setModuleEnabled } from "./module-service.ts";
+import { listGuildModules, setModuleEnabled } from "./module-service.ts";
 
 export const app = new Hono<{ Variables: AuthVars }>();
+
+// CORS: el dashboard (otro origen) llama con cookies de sesión, así que hay que permitir su
+// origen explícitamente y `credentials`.
+app.use(
+  "/api/v1/*",
+  cors({
+    origin: env.DASHBOARD_URL,
+    credentials: true,
+    allowMethods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+  }),
+);
 
 app.get("/api/v1/health", (c) => c.json({ ok: true }));
 
@@ -22,7 +34,7 @@ app.get("/api/v1/health", (c) => c.json({ ok: true }));
 // Response completa (`asResponse`) y construimos un 302 que conserva sus `Set-Cookie`.
 app.get("/api/v1/auth/discord", async (c) => {
   const res = await auth.api.signInSocial({
-    body: { provider: "discord", callbackURL: `${env.API_URL}/api/v1/me` },
+    body: { provider: "discord", callbackURL: env.DASHBOARD_URL },
     asResponse: true,
   });
 
@@ -60,6 +72,15 @@ app.get("/api/v1/me/guilds", requireSession, async (c) => {
     : [];
   const presentIds = new Set(present.map((row) => row.id));
   return c.json({ guilds: adminGuilds.filter((g) => presentIds.has(g.id)) });
+});
+
+// Estado efectivo de cada módulo en el servidor (para la rejilla del dashboard).
+app.get("/api/v1/guilds/:guildId/modules", requireGuildAdmin, async (c) => {
+  const guildId = c.req.param("guildId");
+  if (!guildId) {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Falta guildId." } }, 400);
+  }
+  return c.json({ modules: await listGuildModules(db, guildId) });
 });
 
 // Toggle de módulo por servidor (auth por acción). Persiste, publica en Redis y audita.
