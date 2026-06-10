@@ -25,8 +25,13 @@
       "version": "0.0.0",
       "dependencies": {
         "@barista/config": "workspace:*",
+        "@barista/core": "workspace:*",
+        "@barista/db": "workspace:*",
+        "@barista/discord": "workspace:*",
+        "@barista/module-echo": "workspace:*",
         "@sapphire/framework": "^5.3.6",
         "discord.js": "^14.16.3",
+        "drizzle-orm": "^0.38.3",
       },
     },
     "apps/dashboard": {
@@ -46,6 +51,11 @@
     "packages/core": {
       "name": "@barista/core",
       "version": "0.0.0",
+      "dependencies": {
+        "@barista/discord": "workspace:*",
+        "discord.js": "^14.16.3",
+        "zod": "^3.24.1",
+      },
     },
     "packages/db": {
       "name": "@barista/db",
@@ -61,6 +71,17 @@
     "packages/discord": {
       "name": "@barista/discord",
       "version": "0.0.0",
+      "dependencies": {
+        "discord.js": "^14.16.3",
+      },
+    },
+    "packages/module-echo": {
+      "name": "@barista/module-echo",
+      "version": "1.0.0",
+      "dependencies": {
+        "@barista/core": "workspace:*",
+        "zod": "^3.24.1",
+      },
     },
   },
   "packages": {
@@ -77,6 +98,8 @@
     "@barista/db": ["@barista/db@workspace:packages/db"],
 
     "@barista/discord": ["@barista/discord@workspace:packages/discord"],
+
+    "@barista/module-echo": ["@barista/module-echo@workspace:packages/module-echo"],
 
     "@biomejs/biome": ["@biomejs/biome@1.9.4", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "1.9.4", "@biomejs/cli-darwin-x64": "1.9.4", "@biomejs/cli-linux-arm64": "1.9.4", "@biomejs/cli-linux-arm64-musl": "1.9.4", "@biomejs/cli-linux-x64": "1.9.4", "@biomejs/cli-linux-x64-musl": "1.9.4", "@biomejs/cli-win32-arm64": "1.9.4", "@biomejs/cli-win32-x64": "1.9.4" }, "bin": { "biome": "bin/biome" } }, "sha512-1rkd7G70+o9KkTn5KLmDYXihGoTaIGO9PIIN2ZB7UJxFrWw04CZHPYiMRjYsaDvVV7hP1dYNRLxSANLaBFGpog=="],
 

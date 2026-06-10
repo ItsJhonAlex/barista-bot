@@ -1,6 +1,6 @@
 {
-  "name": "@barista/core",
-  "version": "0.0.0",
+  "name": "@barista/module-echo",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,8 +10,7 @@
     }
   },
   "dependencies": {
-    "@barista/discord": "workspace:*",
-    "discord.js": "^14.16.3",
+    "@barista/core": "workspace:*",
     "zod": "^3.24.1"
   }
 }
