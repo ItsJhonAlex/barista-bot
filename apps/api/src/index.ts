@@ -1,11 +1,12 @@
-import { loadEnv } from "@barista/config";
-import type { Env } from "@barista/config";
+import { app } from "./app.ts";
+import { env } from "./env.ts";
 
-/**
- * Punto de entrada de la API del dashboard. Skeleton del Sprint 0 (S0.1): valida el entorno y
- * lo devuelve resuelto. El servidor Hono, OAuth con Better Auth y el toggle de módulos llegan
- * en S0.5.
- */
-export function loadApiConfig(): Env {
-  return loadEnv();
-}
+// Bun sirve el export default `{ port, fetch }`. La validación del entorno ya ocurrió al
+// importar `env` (fail fast).
+// biome-ignore lint/suspicious/noConsole: banner de arranque del proceso
+console.log(`api escuchando en ${env.API_URL} (puerto ${env.API_PORT})`);
+
+export default {
+  port: env.API_PORT,
+  fetch: app.fetch,
+};
