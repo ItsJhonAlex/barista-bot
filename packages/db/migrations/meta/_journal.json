@@ -8,6 +8,13 @@
       "when": 1781030320531,
       "tag": "0000_slim_adam_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781124080294,
+      "tag": "0001_gorgeous_nomad",
+      "breakpoints": true
     }
   ]
 }

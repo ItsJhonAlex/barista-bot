@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { createSubscriber } from "@barista/bus";
 import { loadEnv } from "@barista/config";
 import { EventDispatcher, type Logger, ModuleGate, createMemoryStore } from "@barista/core";
 import { createDb } from "@barista/db/client";
@@ -11,6 +12,7 @@ import {
 } from "@sapphire/framework";
 import { Events, GatewayIntentBits } from "discord.js";
 import { createEffectiveStateResolver, seedModuleCatalog } from "./effective-state.ts";
+import { registerGuildSync, syncAllGuilds } from "./guild-sync.ts";
 import { buildRegistry } from "./registry.ts";
 
 // Validación del entorno al arrancar (fail fast).
@@ -48,6 +50,20 @@ const { db } = createDb(env.DATABASE_URL);
 await seedModuleCatalog(db, registry);
 
 const gate = new ModuleGate(createEffectiveStateResolver(db));
+
+// La `api` publica en Redis al togglear/reconfigurar un módulo; aquí invalidamos solo la
+// entrada de caché afectada para que la siguiente lectura repueble desde BD. Así el toggle
+// surte efecto en < 2 s sin tocar BD en el hot path ni reiniciar (O3 / RNF-12).
+const subscriber = createSubscriber(env.REDIS_URL);
+await subscriber.onModuleToggled(({ guildId, moduleId, enabled }) => {
+  gate.invalidate(guildId, moduleId);
+  log.info(`Caché invalidada (module.toggled): ${moduleId}@${guildId} enabled=${enabled}`);
+});
+await subscriber.onModuleConfigUpdated(({ guildId, moduleId }) => {
+  gate.invalidate(guildId, moduleId);
+  log.info(`Caché invalidada (module.config.updated): ${moduleId}@${guildId}`);
+});
+
 const dispatcher = new EventDispatcher({
   registry,
   gate,
@@ -68,8 +84,12 @@ for (const event of registry.subscribedEvents()) {
   });
 }
 
+// Mantiene la tabla `guilds` al día (alta/baja del bot en servidores).
+registerGuildSync(client, db, log);
+
 client.once(Events.ClientReady, (ready) => {
   log.info(`Conectado como ${ready.user.tag} (id ${ready.user.id})`);
+  syncAllGuilds(db, client).catch((error) => log.error("Fallo al sincronizar guilds", error));
 });
 
 await client.login(env.DISCORD_BOT_TOKEN);

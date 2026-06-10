@@ -2,6 +2,7 @@
 // frontera: se puede importar desde cualquier sitio (incluido el dashboard) porque no
 // contiene credenciales. El cliente con credenciales vive en @barista/db/client.
 
+export * from "./auth.ts";
 export * from "./enums.ts";
 export * from "./tables.ts";
 export * from "./types.ts";

@@ -8,6 +8,7 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
+    "@barista/bus": "workspace:*",
     "@barista/config": "workspace:*",
     "@barista/core": "workspace:*",
     "@barista/db": "workspace:*",

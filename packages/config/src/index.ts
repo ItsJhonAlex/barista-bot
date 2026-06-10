@@ -24,6 +24,10 @@ export const envSchema = z.object({
 
   // URL pública del dashboard
   DASHBOARD_URL: z.string().url().default("http://localhost:5173"),
+
+  // Backend (api)
+  API_URL: z.string().url().default("http://localhost:3000"),
+  API_PORT: z.coerce.number().int().positive().default(3000),
 });
 
 /** Entorno validado y resuelto (con defaults aplicados). */

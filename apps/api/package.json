@@ -3,9 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts"
+  },
   "dependencies": {
+    "@barista/bus": "workspace:*",
     "@barista/config": "workspace:*",
-    "@barista/core": "workspace:*",
-    "@barista/db": "workspace:*"
+    "@barista/db": "workspace:*",
+    "better-auth": "^1.2.7",
+    "drizzle-orm": "^0.38.3",
+    "hono": "^4.6.14"
   }
 }
