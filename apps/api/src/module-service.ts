@@ -3,6 +3,24 @@ import type { Database } from "@barista/db/client";
 import { auditLog, globalModules, guildModules, moduleRegistry } from "@barista/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
+/**
+ * Módulos que no se pueden desactivar (siempre activos en todos los servidores). `core` provee
+ * los comandos transversales; el bot lo cortocircuita a activo y la api rechaza su toggle.
+ */
+export const LOCKED_MODULE_IDS: ReadonlySet<string> = new Set(["core"]);
+
+export function isLockedModule(moduleId: string): boolean {
+  return LOCKED_MODULE_IDS.has(moduleId);
+}
+
+/** Error de dominio: se intentó togglear un módulo bloqueado. La api lo mapea a 409. */
+export class ModuleLockedError extends Error {
+  constructor(readonly moduleId: string) {
+    super(`El módulo "${moduleId}" no se puede desactivar.`);
+    this.name = "ModuleLockedError";
+  }
+}
+
 /** Vista de un módulo en un servidor: metadatos del catálogo + estado efectivo. */
 export interface GuildModuleView {
   id: string;
@@ -10,6 +28,8 @@ export interface GuildModuleView {
   description: string;
   category: string | null;
   enabled: boolean;
+  /** Si está bloqueado, el dashboard lo muestra como "siempre activo", sin interruptor. */
+  locked: boolean;
 }
 
 /**
@@ -18,7 +38,7 @@ export interface GuildModuleView {
  * override que aplica el bot).
  */
 export async function listGuildModules(db: Database, guildId: string): Promise<GuildModuleView[]> {
-  return db
+  const rows = await db
     .select({
       id: moduleRegistry.id,
       name: moduleRegistry.name,
@@ -32,6 +52,12 @@ export async function listGuildModules(db: Database, guildId: string): Promise<G
       guildModules,
       and(eq(guildModules.moduleId, moduleRegistry.id), eq(guildModules.guildId, guildId)),
     );
+
+  // Los módulos bloqueados (p. ej. `core`) se muestran siempre activos, coherente con el bot.
+  return rows.map((row) => {
+    const locked = isLockedModule(row.id);
+    return { ...row, locked, enabled: locked ? true : row.enabled };
+  });
 }
 
 export interface ToggleResult {
@@ -51,6 +77,11 @@ export async function setModuleEnabled(
 ): Promise<ToggleResult> {
   const { db, publisher } = deps;
   const { guildId, moduleId, enabled, actorId } = params;
+
+  // Defensa en profundidad: `core` y demás bloqueados nunca se persisten como desactivados.
+  if (isLockedModule(moduleId)) {
+    throw new ModuleLockedError(moduleId);
+  }
 
   const [mod] = await db
     .select({ version: moduleRegistry.version })

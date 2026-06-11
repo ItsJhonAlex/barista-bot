@@ -1,28 +1,25 @@
 import { fileURLToPath } from "node:url";
 import { createSubscriber } from "@barista/bus";
 import { loadEnv } from "@barista/config";
-import { EventDispatcher, type Logger, ModuleGate, createMemoryStore } from "@barista/core";
+import {
+  CommandDispatcher,
+  EventDispatcher,
+  type Logger,
+  ModuleGate,
+  createDefaultPreconditions,
+  createMemoryStore,
+} from "@barista/core";
 import { createDb } from "@barista/db/client";
 import { createDiscordService } from "@barista/discord";
-import {
-  ApplicationCommandRegistries,
-  LogLevel,
-  RegisterBehavior,
-  SapphireClient,
-} from "@sapphire/framework";
+import { LogLevel, SapphireClient } from "@sapphire/framework";
 import { Events, GatewayIntentBits } from "discord.js";
+import { registerGlobalCommands } from "./command-registrar.ts";
 import { createEffectiveStateResolver, seedModuleCatalog } from "./effective-state.ts";
 import { registerGuildSync, syncAllGuilds } from "./guild-sync.ts";
 import { buildRegistry } from "./registry.ts";
 
 // Validación del entorno al arrancar (fail fast).
 const env = loadEnv();
-
-// En desarrollo, registro instantáneo de slash commands en el servidor de pruebas.
-if (env.DISCORD_DEV_GUILD_ID) {
-  ApplicationCommandRegistries.setDefaultGuildIds([env.DISCORD_DEV_GUILD_ID]);
-}
-ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.Overwrite);
 
 const client = new SapphireClient({
   baseUserDirectory: fileURLToPath(new URL(".", import.meta.url)),
@@ -64,13 +61,28 @@ await subscriber.onModuleConfigUpdated(({ guildId, moduleId }) => {
   log.info(`Caché invalidada (module.config.updated): ${moduleId}@${guildId}`);
 });
 
+const discord = createDiscordService(client);
+const createStore = createMemoryStore();
+
 const dispatcher = new EventDispatcher({
   registry,
   gate,
   client,
-  discord: createDiscordService(client),
+  discord,
   log,
-  createStore: createMemoryStore(),
+  createStore,
+});
+
+// Router de comandos (ADR-014): espejo del event dispatcher. Sapphire es el host (login, REST),
+// pero el routing y las preconditions de módulo viven en el core.
+const commandDispatcher = new CommandDispatcher({
+  registry,
+  gate,
+  client,
+  discord,
+  log,
+  createStore,
+  preconditions: createDefaultPreconditions(),
 });
 
 // Regla de oro: UN listener por tipo de evento que delega en el router del core, que aplica
@@ -84,11 +96,25 @@ for (const event of registry.subscribedEvents()) {
   });
 }
 
+// Bridge con Sapphire (ADR-014): UN listener de interactionCreate que delega en el
+// CommandDispatcher del core. No usamos piezas Command de Sapphire para los módulos.
+client.on(Events.InteractionCreate, (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  commandDispatcher.dispatch(interaction).catch((error) => {
+    log.error(`Fallo al despachar el comando "${interaction.commandName}"`, error);
+  });
+});
+
 // Mantiene la tabla `guilds` al día (alta/baja del bot en servidores).
 registerGuildSync(client, db, log);
 
 client.once(Events.ClientReady, (ready) => {
   log.info(`Conectado como ${ready.user.tag} (id ${ready.user.id})`);
+  // Registro GLOBAL de los comandos del módulo `core` (ADR-005). Los módulos opcionales se
+  // sincronizan por-guild al togglear (TODO en command-registrar).
+  registerGlobalCommands(ready, registry, log, env.DISCORD_DEV_GUILD_ID).catch((error) =>
+    log.error("Fallo al registrar los comandos globales", error),
+  );
   syncAllGuilds(db, client).catch((error) => log.error("Fallo al sincronizar guilds", error));
 });
 

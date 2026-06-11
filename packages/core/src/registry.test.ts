@@ -1,11 +1,25 @@
+import { SlashCommandBuilder } from "discord.js";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import type { ModuleCommand } from "./contract.ts";
 import { defineModule } from "./define-module.ts";
 import { ModuleRegistry } from "./registry.ts";
 
+function command(name: string): ModuleCommand {
+  return {
+    data: new SlashCommandBuilder().setName(name).setDescription("cmd"),
+    run: () => undefined,
+  };
+}
+
 function make(
   id: string,
-  extra: { version?: string; dependsOn?: string[]; withEvent?: boolean } = {},
+  extra: {
+    version?: string;
+    dependsOn?: string[];
+    withEvent?: boolean;
+    commands?: ModuleCommand[];
+  } = {},
 ) {
   return defineModule({
     manifest: {
@@ -17,6 +31,7 @@ function make(
     },
     configSchema: z.object({}),
     events: extra.withEvent ? { messageCreate: () => undefined } : undefined,
+    commands: extra.commands,
   });
 }
 
@@ -73,5 +88,31 @@ describe("ModuleRegistry", () => {
     registry.register(make("a", { dependsOn: ["b"] }));
     registry.register(make("b", { dependsOn: ["a"] }));
     expect(() => registry.loadOrder()).toThrow(/ciclo/i);
+  });
+
+  it("indexa comandos por nombre y los resuelve con findCommand", () => {
+    const registry = new ModuleRegistry();
+    registry.register(make("core", { commands: [command("ping")] }));
+    const found = registry.findCommand("ping");
+    expect(found?.mod.manifest.id).toBe("core");
+    expect(found?.command.data.name).toBe("ping");
+    expect(registry.findCommand("nope")).toBeUndefined();
+  });
+
+  it("commandsOf devuelve los comandos de un módulo", () => {
+    const registry = new ModuleRegistry();
+    registry.register(make("core", { commands: [command("ping"), command("help")] }));
+    registry.register(make("echo", { commands: [command("echo-say")] }));
+    expect(registry.commandsOf("core").map((c) => c.data.name)).toEqual(["ping", "help"]);
+    expect(registry.commandsOf("echo").map((c) => c.data.name)).toEqual(["echo-say"]);
+    expect(registry.commandsOf("missing")).toEqual([]);
+  });
+
+  it("lanza ante colisión de nombre de comando entre módulos", () => {
+    const registry = new ModuleRegistry();
+    registry.register(make("a", { commands: [command("dup")] }));
+    expect(() => registry.register(make("b", { commands: [command("dup")] }))).toThrow(
+      /comando duplicado|colisión/i,
+    );
   });
 });

@@ -18,7 +18,13 @@ export function ModuleCard({
       <p className="card__desc">{module.description}</p>
       <div className="card__foot">
         <span className="mono">{module.id}</span>
-        <ToggleCup active={module.enabled} busy={busy} onToggle={onToggle} />
+        {module.locked ? (
+          <span className="locked-badge" title="Este módulo no se puede desactivar">
+            Siempre activo
+          </span>
+        ) : (
+          <ToggleCup active={module.enabled} busy={busy} onToggle={onToggle} />
+        )}
       </div>
     </article>
   );

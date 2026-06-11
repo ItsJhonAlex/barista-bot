@@ -32,6 +32,7 @@
         "@barista/core": "workspace:*",
         "@barista/db": "workspace:*",
         "@barista/discord": "workspace:*",
+        "@barista/module-core": "workspace:*",
         "@barista/module-echo": "workspace:*",
         "@sapphire/framework": "^5.3.6",
         "discord.js": "^14.16.3",
@@ -92,6 +93,15 @@
       "version": "0.0.0",
       "dependencies": {
         "discord.js": "^14.16.3",
+      },
+    },
+    "packages/module-core": {
+      "name": "@barista/module-core",
+      "version": "1.0.0",
+      "dependencies": {
+        "@barista/core": "workspace:*",
+        "discord.js": "^14.16.3",
+        "zod": "^3.24.1",
       },
     },
     "packages/module-echo": {
@@ -157,6 +167,8 @@
     "@barista/db": ["@barista/db@workspace:packages/db"],
 
     "@barista/discord": ["@barista/discord@workspace:packages/discord"],
+
+    "@barista/module-core": ["@barista/module-core@workspace:packages/module-core"],
 
     "@barista/module-echo": ["@barista/module-echo@workspace:packages/module-echo"],
 

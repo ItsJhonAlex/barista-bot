@@ -41,6 +41,23 @@ export interface ModuleStore {
   list(prefix?: string): Promise<string[]>;
 }
 
+/** Proyección read-only de un módulo activo y sus comandos, para /help (ADR-015). */
+export interface CatalogEntry {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly commands: readonly { readonly name: string; readonly description: string }[];
+}
+
+/**
+ * Vista read-only del catálogo de módulos activos en un guild. La consume `/help` desde el
+ * contexto para listar qué módulos y comandos están disponibles aquí y ahora. Respeta el gate
+ * (caché), no toca BD en el hot path.
+ */
+export interface ModuleCatalog {
+  enabledModules(): Promise<readonly CatalogEntry[]>;
+}
+
 /** Contexto que el núcleo inyecta a handlers y comandos de UN módulo en UN guild. */
 export interface ModuleContext<Config = unknown> {
   readonly guildId: string;
@@ -50,6 +67,8 @@ export interface ModuleContext<Config = unknown> {
   readonly discord: DiscordService;
   readonly log: Logger;
   readonly store: ModuleStore;
+  /** Catálogo read-only de módulos activos en este guild (lo usa /help). ADR-015. */
+  readonly catalog: ModuleCatalog;
 }
 
 /** Manejador de un evento del Gateway. */

@@ -9,8 +9,14 @@ import { and, eq } from "drizzle-orm";
  * si tampoco existe, desactivado. El gate del core cachea el resultado para no tocar BD en el
  * hot path.
  */
+/** El módulo `core` no es desactivable: vive siempre activo en todos los guilds. */
+const ALWAYS_ON_MODULE_ID = "core";
+
 export function createEffectiveStateResolver(db: Database): EffectiveStateResolver {
   return async (guildId, moduleId): Promise<EffectiveState> => {
+    // core no desactivable: cortocircuita el gate antes de tocar BD, ignorando guild_modules.
+    if (moduleId === ALWAYS_ON_MODULE_ID) return { enabled: true, config: {} };
+
     const [perGuild] = await db
       .select()
       .from(guildModules)

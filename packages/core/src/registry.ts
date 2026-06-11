@@ -1,9 +1,15 @@
 import type { ClientEvents } from "discord.js";
 import type { z } from "zod";
-import type { BaristaModule } from "./contract.ts";
+import type { BaristaModule, ModuleCommand } from "./contract.ts";
 
 const MODULE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMVER = /^\d+\.\d+\.\d+(?:[-+].*)?$/;
+
+/** Entrada del índice de comandos: el comando y el módulo que lo aporta. */
+export interface CommandEntry {
+  readonly mod: BaristaModule;
+  readonly command: ModuleCommand;
+}
 
 /**
  * Registry de módulos: valida manifests, indexa qué módulos escuchan cada evento y resuelve
@@ -13,6 +19,7 @@ const SEMVER = /^\d+\.\d+\.\d+(?:[-+].*)?$/;
 export class ModuleRegistry {
   readonly #modules = new Map<string, BaristaModule>();
   readonly #byEvent = new Map<keyof ClientEvents, BaristaModule[]>();
+  readonly #byCommandName = new Map<string, CommandEntry>();
 
   /**
    * Registra un módulo validando su manifest. Es genérico en el schema para aceptar cualquier
@@ -33,7 +40,25 @@ export class ModuleRegistry {
     }
 
     const stored = mod as unknown as BaristaModule;
+
+    // Indexa los comandos por nombre antes de mutar el estado: una colisión debe abortar el
+    // registro completo del módulo sin dejarlo a medias.
+    const indexed: CommandEntry[] = [];
+    for (const command of stored.commands ?? []) {
+      const name = command.data.name;
+      if (this.#byCommandName.has(name)) {
+        const owner = this.#byCommandName.get(name)?.mod.manifest.id;
+        throw new Error(
+          `Colisión de comando "${name}": ya lo aporta el módulo "${owner}" (al registrar "${id}")`,
+        );
+      }
+      indexed.push({ mod: stored, command });
+    }
+
     this.#modules.set(id, stored);
+    for (const entry of indexed) {
+      this.#byCommandName.set(entry.command.data.name, entry);
+    }
     for (const event of Object.keys(stored.events ?? {}) as (keyof ClientEvents)[]) {
       const listeners = this.#byEvent.get(event) ?? [];
       listeners.push(stored);
@@ -57,6 +82,16 @@ export class ModuleRegistry {
   /** Módulos que escuchan un evento concreto. */
   modulesListeningTo(event: keyof ClientEvents): readonly BaristaModule[] {
     return this.#byEvent.get(event) ?? [];
+  }
+
+  /** Resuelve un comando por su nombre (clave única global) al módulo que lo aporta. */
+  findCommand(name: string): CommandEntry | undefined {
+    return this.#byCommandName.get(name);
+  }
+
+  /** Comandos que aporta un módulo concreto (en orden de declaración). */
+  commandsOf(moduleId: string): readonly ModuleCommand[] {
+    return this.#modules.get(moduleId)?.commands ?? [];
   }
 
   /**

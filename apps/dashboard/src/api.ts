@@ -46,6 +46,8 @@ export interface ModuleView {
   description: string;
   category: string | null;
   enabled: boolean;
+  /** Módulo siempre activo (p. ej. `core`): se muestra sin interruptor. */
+  locked: boolean;
 }
 
 export interface ToggleResult {

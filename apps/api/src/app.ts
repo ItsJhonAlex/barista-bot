@@ -9,7 +9,7 @@ import { db } from "./db.ts";
 import { fetchAdminGuilds } from "./discord-guilds.ts";
 import { env } from "./env.ts";
 import { type AuthVars, requireGuildAdmin, requireSession } from "./middleware.ts";
-import { listGuildModules, setModuleEnabled } from "./module-service.ts";
+import { isLockedModule, listGuildModules, setModuleEnabled } from "./module-service.ts";
 
 export const app = new Hono<{ Variables: AuthVars }>();
 
@@ -91,6 +91,12 @@ const toggle =
     const moduleId = c.req.param("moduleId");
     if (!guildId || !moduleId) {
       return c.json({ error: { code: "BAD_REQUEST", message: "Faltan parámetros." } }, 400);
+    }
+    if (isLockedModule(moduleId)) {
+      return c.json(
+        { error: { code: "MODULE_LOCKED", message: "Este módulo no se puede desactivar." } },
+        409,
+      );
     }
     const result = await setModuleEnabled(
       { db, publisher },

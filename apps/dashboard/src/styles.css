@@ -501,6 +501,27 @@ button {
   background: rgba(192, 98, 63, 0.05);
 }
 
+/* módulo bloqueado (siempre activo, p. ej. core): indicador no interactivo */
+.locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--matcha-700);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 139, 90, 0.3);
+  background: rgba(124, 139, 90, 0.08);
+}
+.locked-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--matcha);
+}
+
 /* ToggleCup: la taza que se llena */
 .cup {
   position: relative;
