@@ -16,6 +16,11 @@ export interface ModuleManifest {
   readonly id: string;
   readonly name: string;
   readonly description: string;
+  /**
+   * Descripción larga (texto explicativo para la página de ajustes del dashboard). No se
+   * persiste en BD: fluye manifest → api → dashboard vía el registry en memoria.
+   */
+  readonly details?: string;
   readonly version: string; // semver
   /** Permisos del bot que el módulo necesita en el servidor. */
   readonly requiredBotPermissions?: PermissionsString[];

@@ -9,7 +9,15 @@ import { db } from "./db.ts";
 import { fetchAdminGuilds } from "./discord-guilds.ts";
 import { env } from "./env.ts";
 import { type AuthVars, requireGuildAdmin, requireSession } from "./middleware.ts";
-import { isLockedModule, listGuildModules, setModuleEnabled } from "./module-service.ts";
+import {
+  InvalidConfigError,
+  ModuleNotFoundError,
+  getModuleDetail,
+  isLockedModule,
+  listGuildModules,
+  setModuleConfig,
+  setModuleEnabled,
+} from "./module-service.ts";
 
 export const app = new Hono<{ Variables: AuthVars }>();
 
@@ -107,3 +115,62 @@ const toggle =
 
 app.post("/api/v1/guilds/:guildId/modules/:moduleId/enable", requireGuildAdmin, toggle(true));
 app.post("/api/v1/guilds/:guildId/modules/:moduleId/disable", requireGuildAdmin, toggle(false));
+
+// Detalle de un módulo para la página de ajustes: metadata + JSON Schema + config resuelta.
+app.get("/api/v1/guilds/:guildId/modules/:moduleId/config", requireGuildAdmin, async (c) => {
+  const guildId = c.req.param("guildId");
+  const moduleId = c.req.param("moduleId");
+  if (!guildId || !moduleId) {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Faltan parámetros." } }, 400);
+  }
+  try {
+    return c.json(await getModuleDetail(db, guildId, moduleId));
+  } catch (err) {
+    if (err instanceof ModuleNotFoundError) {
+      return c.json({ error: { code: "MODULE_NOT_FOUND", message: "No existe ese módulo." } }, 404);
+    }
+    throw err;
+  }
+});
+
+// Guardar la config de un módulo en un servidor (RF-26). Valida con Zod, persiste, audita y
+// publica `module.config.updated` para que el bot invalide caché.
+app.patch("/api/v1/guilds/:guildId/modules/:moduleId/config", requireGuildAdmin, async (c) => {
+  const guildId = c.req.param("guildId");
+  const moduleId = c.req.param("moduleId");
+  if (!guildId || !moduleId) {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Faltan parámetros." } }, 400);
+  }
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: { code: "BAD_REQUEST", message: "JSON inválido." } }, 400);
+  }
+
+  try {
+    const result = await setModuleConfig(
+      { db, publisher },
+      { guildId, moduleId, config: body, actorId: c.get("userId") },
+    );
+    return c.json(result);
+  } catch (err) {
+    if (err instanceof ModuleNotFoundError) {
+      return c.json({ error: { code: "MODULE_NOT_FOUND", message: "No existe ese módulo." } }, 404);
+    }
+    if (err instanceof InvalidConfigError) {
+      return c.json(
+        {
+          error: {
+            code: "INVALID_CONFIG",
+            message: "La configuración no es válida.",
+            details: err.issues,
+          },
+        },
+        422,
+      );
+    }
+    throw err;
+  }
+});

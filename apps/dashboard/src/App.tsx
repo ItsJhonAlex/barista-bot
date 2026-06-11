@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { type AdminGuild, ApiError, type ModuleView, type SessionUser, api } from "./api.ts";
 import { Login } from "./components/Login.tsx";
 import { ModuleCard } from "./components/ModuleCard.tsx";
+import { ModuleDetail } from "./components/ModuleDetail.tsx";
 import { ServerShelf } from "./components/ServerShelf.tsx";
 
 type Phase = { t: "loading" } | { t: "login" } | { t: "ready"; user: SessionUser };
@@ -41,7 +42,14 @@ function CupGlyph() {
 function Dashboard({ user }: { user: SessionUser }) {
   const [guilds, setGuilds] = useState<AdminGuild[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Cambiar de servidor vuelve a la carta (cierra el detalle de módulo abierto).
+  const selectGuild = (id: string) => {
+    setSelected(id);
+    setSelectedModule(null);
+  };
 
   useEffect(() => {
     api
@@ -76,11 +84,19 @@ function Dashboard({ user }: { user: SessionUser }) {
       </header>
 
       <div className="body">
-        <ServerShelf guilds={guilds ?? []} selected={selected} onSelect={setSelected} />
+        <ServerShelf guilds={guilds ?? []} selected={selected} onSelect={selectGuild} />
         <main className="main">
           {error ? <div className="error-banner">{error}</div> : null}
           {selected ? (
-            <ModuleGrid guildId={selected} />
+            selectedModule ? (
+              <ModuleDetail
+                guildId={selected}
+                moduleId={selectedModule}
+                onBack={() => setSelectedModule(null)}
+              />
+            ) : (
+              <ModuleGrid guildId={selected} onOpenModule={setSelectedModule} />
+            )
           ) : guilds === null ? (
             <p className="page-sub">Buscando tus servidores…</p>
           ) : (
@@ -101,7 +117,13 @@ interface ToastItem {
   on: boolean;
 }
 
-function ModuleGrid({ guildId }: { guildId: string }) {
+function ModuleGrid({
+  guildId,
+  onOpenModule,
+}: {
+  guildId: string;
+  onOpenModule: (moduleId: string) => void;
+}) {
   const [modules, setModules] = useState<ModuleView[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +197,7 @@ function ModuleGrid({ guildId }: { guildId: string }) {
               module={module}
               busy={busy === module.id}
               onToggle={() => void toggle(module)}
+              onOpen={() => onOpenModule(module.id)}
             />
           ))}
         </div>

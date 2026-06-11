@@ -1,6 +1,6 @@
 {
-  "name": "@barista/module-echo",
-  "version": "1.1.0",
+  "name": "@barista/modules",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@barista/core": "workspace:*",
-    "zod": "^3.24.1"
+    "@barista/module-core": "workspace:*",
+    "@barista/module-echo": "workspace:*"
   }
 }

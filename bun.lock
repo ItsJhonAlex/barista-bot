@@ -17,10 +17,14 @@
       "dependencies": {
         "@barista/bus": "workspace:*",
         "@barista/config": "workspace:*",
+        "@barista/core": "workspace:*",
         "@barista/db": "workspace:*",
+        "@barista/modules": "workspace:*",
         "better-auth": "^1.2.7",
         "drizzle-orm": "^0.38.3",
         "hono": "^4.6.14",
+        "zod": "^3.24.1",
+        "zod-to-json-schema": "^3.24.1",
       },
     },
     "apps/bot": {
@@ -32,8 +36,7 @@
         "@barista/core": "workspace:*",
         "@barista/db": "workspace:*",
         "@barista/discord": "workspace:*",
-        "@barista/module-core": "workspace:*",
-        "@barista/module-echo": "workspace:*",
+        "@barista/modules": "workspace:*",
         "@sapphire/framework": "^5.3.6",
         "discord.js": "^14.16.3",
         "drizzle-orm": "^0.38.3",
@@ -106,10 +109,19 @@
     },
     "packages/module-echo": {
       "name": "@barista/module-echo",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "dependencies": {
         "@barista/core": "workspace:*",
         "zod": "^3.24.1",
+      },
+    },
+    "packages/modules": {
+      "name": "@barista/modules",
+      "version": "0.0.0",
+      "dependencies": {
+        "@barista/core": "workspace:*",
+        "@barista/module-core": "workspace:*",
+        "@barista/module-echo": "workspace:*",
       },
     },
   },
@@ -171,6 +183,8 @@
     "@barista/module-core": ["@barista/module-core@workspace:packages/module-core"],
 
     "@barista/module-echo": ["@barista/module-echo@workspace:packages/module-echo"],
+
+    "@barista/modules": ["@barista/modules@workspace:packages/modules"],
 
     "@better-auth/core": ["@better-auth/core@1.6.16", "", { "dependencies": { "@opentelemetry/semantic-conventions": "^1.39.0", "@standard-schema/spec": "^1.1.0", "zod": "^4.3.6" }, "peerDependencies": { "@better-auth/utils": "0.4.1", "@better-fetch/fetch": "1.2.2", "@cloudflare/workers-types": ">=4", "@opentelemetry/api": "^1.9.0", "better-call": "1.3.6", "jose": "^6.1.0", "kysely": "^0.28.5 || ^0.29.0", "nanostores": "^1.0.1" }, "optionalPeers": ["@cloudflare/workers-types", "@opentelemetry/api"] }, "sha512-a0+ZNaaYYxOdFXFXmOE36TgtYN8QDzSYDozaAH0zsiWB0oyljsENyCxHJSekysISftb0rFpVXNdw525aEAOa6w=="],
 
@@ -613,6 +627,8 @@
     "yallist": ["yallist@3.1.1", "", {}, "sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g=="],
 
     "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
+    "zod-to-json-schema": ["zod-to-json-schema@3.25.2", "", { "peerDependencies": { "zod": "^3.25.28 || ^4" } }, "sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA=="],
 
     "@better-auth/core/zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
 
