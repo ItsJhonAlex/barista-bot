@@ -55,7 +55,8 @@ function buildDeps(
     registry,
     gate,
     client: {} as never,
-    discord: { sendMessage: vi.fn() },
+    // Mock parcial: el dispatcher solo necesita `sendMessage` para estos tests.
+    discord: { sendMessage: vi.fn() } as never,
     log,
     createStore: createMemoryStore(),
     preconditions,
