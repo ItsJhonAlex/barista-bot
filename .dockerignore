@@ -1,0 +1,21 @@
+# Dependencias y artefactos (se reinstalan/reconstruyen dentro de la imagen)
+node_modules
+**/node_modules
+**/dist
+**/.turbo
+**/.vite
+
+# Control de versiones y tooling local (no debe entrar en las imágenes)
+.git
+.github
+.claude
+docs
+.remember
+
+# Secretos: nunca se hornean en la imagen; en runtime llegan por env_file (compose)
+.env
+.env.*
+
+# Ruido
+*.log
+.DS_Store

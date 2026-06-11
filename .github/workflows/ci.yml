@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: lint · typecheck · test · build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: barista
+          POSTGRES_PASSWORD: barista
+          POSTGRES_DB: barista
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U barista -d barista"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://barista:barista@localhost:5432/barista
+      REDIS_URL: redis://localhost:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.6
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint (Biome)
+        run: bun run lint
+
+      - name: Typecheck (workspaces)
+        run: bun run typecheck
+
+      - name: Typecheck (dashboard)
+        run: bun --filter @barista/dashboard typecheck
+
+      - name: Apply migrations
+        run: bun --filter @barista/db db:migrate
+
+      - name: Test (Vitest, with ephemeral Postgres/Redis)
+        run: bun run test
+
+      - name: Build (dashboard)
+        run: bun --filter @barista/dashboard build

@@ -1,7 +1,13 @@
-# Infraestructura local de Barista. En el Sprint 0 (S0.2) solo Postgres; Redis se añade en
-# S0.5 y los servicios de aplicación (bot/api/dashboard) en S0.7. Postgres se expone a
-# localhost para ejecutar drizzle-kit y los tests desde el host durante el desarrollo; el
-# endurecimiento de red (solo red interna) llega en S0.7.
+# Stack local completo de Barista (Sprint 0 · S0.7).
+#
+#   docker compose up --build
+#
+# Servicios: postgres, redis, migrate (one-shot), bot, api, dashboard.
+# - postgres/redis se exponen SOLO a localhost (127.0.0.1) para desarrollo/tests desde el
+#   host; no quedan abiertos a la red. El bot/api los alcanzan por la red interna del compose
+#   con los nombres de servicio (`postgres`, `redis`).
+# - Los secretos llegan en runtime desde `.env` (env_file); nunca se hornean en las imágenes.
+# - `migrate` aplica las migraciones y termina; bot y api esperan a que complete.
 
 services:
   postgres:
@@ -13,7 +19,7 @@ services:
       POSTGRES_PASSWORD: barista
       POSTGRES_DB: barista
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - barista-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -27,12 +33,77 @@ services:
     container_name: barista-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Aplica las migraciones de Drizzle y termina. bot/api dependen de su finalización.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["bun", "--filter", "@barista/db", "db:migrate"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://barista:barista@postgres:5432/barista
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["bun", "run", "apps/bot/src/index.ts"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://barista:barista@postgres:5432/barista
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["bun", "run", "apps/api/src/index.ts"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://barista:barista@postgres:5432/barista
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+      args:
+        # URL pública de la api que el navegador usará (debe ser alcanzable desde el host).
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   barista-pgdata:
