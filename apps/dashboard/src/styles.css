@@ -1,4 +1,6 @@
-/* Barista · sistema café/lofi (docs/08). Tokens primero, luego base y componentes. */
+/* Barista · sistema café/lofi (docs/08). Tokens primero, luego base y componentes.
+   Dirección: cálida, calmada, hecha a mano. Objetos físicos, no panel SaaS frío.
+   El único elemento que "brilla" es la ficha activa (la lámpara sobre la barra). */
 
 :root {
   /* superficies */
@@ -8,23 +10,39 @@
   /* tinta */
   --espresso: #2a211c;
   --cafe-suave: #6f6358;
+  --cafe-tenue: #9a8d7e;
   /* acentos */
   --terracota: #c0623f;
   --terracota-700: #9e4e31;
   --matcha: #7c8b5a;
+  --matcha-700: #5f6e43;
   --miel: #d6a23e;
   --granate: #a23b34;
-  /* línea y sombra cálida */
+  /* línea */
   --borde: #e4dacb;
-  --sombra: 0 1px 2px rgba(42, 33, 28, 0.06), 0 8px 24px rgba(42, 33, 28, 0.06);
+  --borde-calido: #ddcdb6;
+
+  /* sombras cálidas en capas (la luz es cálida, nunca gris) */
+  --sombra-1: 0 1px 2px rgba(42, 33, 28, 0.05);
+  --sombra-2: 0 2px 4px rgba(42, 33, 28, 0.04), 0 10px 26px rgba(42, 33, 28, 0.07);
+  --sombra-3: 0 4px 10px rgba(42, 33, 28, 0.05), 0 22px 48px rgba(42, 33, 28, 0.1);
+  --sombra: var(--sombra-2);
+  /* aura de la ficha activa: luz de lámpara terracota */
+  --aura: 0 0 0 1px rgba(192, 98, 63, 0.14), 0 14px 38px -8px rgba(192, 98, 63, 0.22);
 
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
+  --r-xl: 22px;
 
   --display: "Fraunces", Georgia, serif;
   --ui: "Karla", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* movimiento discreto y con intención */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --dur: 200ms;
 }
 
 * {
@@ -42,10 +60,14 @@ body {
   font-family: var(--ui);
   color: var(--espresso);
   background-color: var(--crema);
-  /* grano de papel apenas perceptible */
-  background-image: radial-gradient(rgba(42, 33, 28, 0.025) 1px, transparent 1px);
-  background-size: 3px 3px;
+  /* atmósfera por capas: la lámpara cálida arriba + grano de papel + halo inferior */
+  background-image: radial-gradient(120% 70% at 50% -20%, rgba(214, 162, 62, 0.1), transparent 55%),
+    radial-gradient(100% 60% at 50% 120%, rgba(124, 139, 90, 0.05), transparent 60%),
+    radial-gradient(rgba(42, 33, 28, 0.022) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 3px 3px;
+  background-attachment: fixed, fixed, scroll;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button {
@@ -54,31 +76,73 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
   }
 }
 
-/* foco de teclado: anillo terracota */
+/* foco de teclado: anillo terracota cálido */
 :focus-visible {
   outline: 2px solid var(--terracota);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
+/* ---- primitivas tipográficas ---- */
 .eyebrow {
   font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--cafe-suave);
   font-weight: 600;
 }
-
 .mono {
   font-family: var(--mono);
-  font-size: 0.82em;
-  color: var(--cafe-suave);
+  font-size: 0.78em;
+  color: var(--cafe-tenue);
+  letter-spacing: -0.01em;
+}
+.serif-italic {
+  font-family: var(--display);
+  font-style: italic;
+  font-optical-sizing: auto;
+}
+
+/* el logomark de taza, reutilizable */
+.cupmark {
+  color: var(--terracota);
+}
+.cupmark .steam {
+  stroke: var(--cafe-tenue);
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0;
+  animation: steam 3.4s var(--ease) infinite;
+}
+.cupmark .steam:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.cupmark .steam:nth-child(3) {
+  animation-delay: 1s;
+}
+@keyframes steam {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scaleY(0.7);
+  }
+  25% {
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-7px) scaleY(1.15);
+  }
 }
 
 /* ============================ Login ============================ */
@@ -91,38 +155,65 @@ button {
 .login__card {
   max-width: 420px;
   text-align: center;
+  animation: rise-in 600ms var(--ease) both;
+}
+/* el sello/posavasos detrás de la taza */
+.login__coaster {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--latte);
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra-2), inset 0 0 0 6px rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+.login__coaster::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed var(--borde-calido);
+  opacity: 0.7;
 }
 .login__mark {
   font-family: var(--display);
   font-weight: 600;
-  font-size: 2.5rem;
-  letter-spacing: -0.01em;
+  font-size: 2.6rem;
+  letter-spacing: -0.015em;
+  line-height: 1;
 }
 .login__mark::first-letter {
   color: var(--terracota);
 }
 .login__tagline {
   color: var(--cafe-suave);
-  margin: 8px 0 28px;
-  font-size: 1.05rem;
+  margin: 10px 0 30px;
+  font-size: 1.15rem;
 }
 .btn-discord {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   border: none;
-  background: var(--terracota);
+  background: linear-gradient(180deg, var(--terracota), var(--terracota-700));
   color: var(--espuma);
   font-weight: 600;
   font-size: 1rem;
-  padding: 13px 22px;
+  padding: 13px 24px;
   border-radius: var(--r-md);
-  box-shadow: var(--sombra);
-  transition: background 160ms ease-out, transform 160ms ease-out;
+  box-shadow: var(--sombra-2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--spring), box-shadow
+    var(--dur) var(--ease);
 }
 .btn-discord:hover {
-  background: var(--terracota-700);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-3);
+}
+.btn-discord:active {
+  transform: translateY(0);
 }
 
 /* ============================ Shell ============================ */
@@ -135,14 +226,24 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
-  background: var(--latte);
+  padding: 13px 24px;
+  background: linear-gradient(180deg, var(--latte), rgba(251, 247, 239, 0.85));
   border-bottom: 1px solid var(--borde);
+  backdrop-filter: saturate(1.05);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.topbar__brandwrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .topbar__brand {
   font-family: var(--display);
   font-weight: 600;
   font-size: 1.4rem;
+  letter-spacing: -0.01em;
 }
 .topbar__brand::first-letter {
   color: var(--terracota);
@@ -154,12 +255,17 @@ button {
   color: var(--cafe-suave);
   font-size: 0.9rem;
 }
+.topbar__name {
+  font-weight: 600;
+  color: var(--espresso);
+}
 .avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   border: 1px solid var(--borde);
   object-fit: cover;
+  box-shadow: var(--sombra-1);
 }
 .btn-ghost {
   border: 1px solid var(--borde);
@@ -168,11 +274,16 @@ button {
   border-radius: var(--r-sm);
   padding: 6px 12px;
   font-size: 0.85rem;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.btn-ghost:hover {
+  border-color: var(--borde-calido);
+  color: var(--espresso);
 }
 
 .body {
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 264px 1fr;
 }
 @media (max-width: 720px) {
   .body {
@@ -183,13 +294,15 @@ button {
 /* ====================== Estantería de servidores ====================== */
 .shelf {
   border-right: 1px solid var(--borde);
-  padding: 20px 14px;
+  padding: 22px 14px;
   background: linear-gradient(180deg, var(--latte), var(--crema));
 }
 .shelf__title {
-  margin: 0 8px 12px;
+  margin: 0 8px 14px;
 }
+/* cada servidor descansa sobre un estante de madera */
 .mug {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -199,30 +312,57 @@ button {
   background: transparent;
   border-radius: var(--r-md);
   padding: 10px 12px;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   color: var(--espresso);
-  transition: background 140ms ease-out, border-color 140ms ease-out;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform
+    var(--dur) var(--spring), box-shadow var(--dur) var(--ease);
+}
+/* la línea del estante */
+.mug::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--borde-calido) 18%,
+    var(--borde-calido) 82%,
+    transparent
+  );
+  opacity: 0.55;
 }
 .mug:hover {
   background: var(--espuma);
+  transform: translateY(-1px);
 }
 .mug--active {
   background: var(--espuma);
-  border-color: var(--borde);
-  box-shadow: var(--sombra);
+  border-color: var(--borde-calido);
+  box-shadow: var(--sombra-2);
+  transform: translateY(-2px);
 }
 .mug__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   background: var(--crema);
   border: 1px solid var(--borde);
   font-family: var(--display);
   font-weight: 600;
+  font-size: 1.05rem;
   color: var(--terracota);
   overflow: hidden;
+  flex: 0 0 auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.mug--active .mug__icon {
+  border-color: var(--borde-calido);
 }
 .mug__icon img {
   width: 100%;
@@ -232,125 +372,201 @@ button {
 .mug__name {
   font-weight: 600;
   font-size: 0.95rem;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 .mug__meta {
-  font-size: 0.78rem;
-  color: var(--cafe-suave);
+  font-size: 0.74rem;
+  color: var(--cafe-tenue);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ============================ Carta / módulos ============================ */
 .main {
-  padding: 32px 36px;
+  padding: 40px 44px;
+  max-width: 1100px;
+}
+@media (max-width: 720px) {
+  .main {
+    padding: 28px 20px;
+  }
+}
+.page-head {
+  margin-bottom: 30px;
 }
 .page-title {
   font-family: var(--display);
   font-weight: 600;
-  font-size: 2rem;
-  margin: 0 0 4px;
-  letter-spacing: -0.01em;
+  font-size: 2.3rem;
+  margin: 6px 0 4px;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
 }
 .page-sub {
   color: var(--cafe-suave);
-  margin: 0 0 28px;
+  margin: 0;
+  font-size: 1.02rem;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 20px;
 }
 
-/* La ficha de módulo — elemento firma */
+/* La ficha de módulo — elemento firma. Una ficha de carta física. */
 .card {
   position: relative;
-  background: var(--latte);
+  background: linear-gradient(180deg, var(--latte), var(--espuma));
   border: 1px solid var(--borde);
   border-radius: var(--r-lg);
-  padding: 20px 20px 18px;
+  padding: 22px 22px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: box-shadow 180ms ease-out, transform 180ms ease-out, border-color 180ms ease-out;
+  isolation: isolate;
+  transition: box-shadow 260ms var(--ease), transform 260ms var(--spring), border-color 260ms
+    var(--ease);
+  animation: rise-in 500ms var(--ease) both;
 }
+/* textura de papel sutil dentro de la ficha */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(rgba(42, 33, 28, 0.02) 1px, transparent 1px);
+  background-size: 3px 3px;
+  pointer-events: none;
+  z-index: -1;
+}
+/* la "lámpara sobre la barra": luz cálida en el borde superior, solo si activo */
 .card::before {
-  /* la "lámpara sobre la barra": luz cálida en el borde superior, solo si activo */
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: 3px;
   border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: linear-gradient(90deg, transparent, var(--terracota), transparent);
+  background: linear-gradient(90deg, transparent, var(--terracota), var(--miel), transparent);
   opacity: 0;
-  transition: opacity 200ms ease-out;
+  transition: opacity 280ms var(--ease);
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sombra-3);
+  border-color: var(--borde-calido);
 }
 .card--active {
-  border-color: #ddcdb6;
-  box-shadow: 0 1px 2px rgba(42, 33, 28, 0.06), 0 10px 30px rgba(192, 98, 63, 0.1);
+  border-color: var(--borde-calido);
+  box-shadow: var(--aura);
 }
 .card--active::before {
   opacity: 1;
 }
+.card--active:hover {
+  box-shadow: var(--aura), var(--sombra-3);
+}
 .card__name {
   font-family: var(--display);
   font-weight: 600;
-  font-size: 1.25rem;
-  margin: 2px 0 0;
+  font-size: 1.3rem;
+  margin: 4px 0 0;
+  letter-spacing: -0.01em;
 }
 .card__desc {
   color: var(--cafe-suave);
   font-size: 0.92rem;
-  line-height: 1.45;
+  line-height: 1.5;
   flex: 1;
 }
 .card__foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--borde);
+}
+
+/* el sello de categoría */
+.stamp {
+  align-self: flex-start;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--terracota-700);
+  font-weight: 700;
+  padding: 3px 9px;
+  border: 1px solid var(--borde-calido);
+  border-radius: 999px;
+  background: rgba(192, 98, 63, 0.05);
 }
 
 /* ToggleCup: la taza que se llena */
 .cup {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   border: 1px solid var(--borde);
   background: var(--espuma);
   border-radius: 999px;
-  padding: 6px 14px 6px 8px;
-  transition: border-color 160ms ease-out, background 160ms ease-out;
+  padding: 6px 15px 6px 9px;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), box-shadow
+    var(--dur) var(--ease);
 }
 .cup:hover:not(:disabled) {
-  border-color: #d6c7b0;
+  border-color: var(--borde-calido);
+  box-shadow: var(--sombra-1);
+}
+.cup--active {
+  background: rgba(124, 139, 90, 0.08);
+  border-color: rgba(124, 139, 90, 0.35);
 }
 .cup:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: progress;
 }
 .cup__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .cup--active .cup__label {
-  color: var(--matcha);
+  color: var(--matcha-700);
 }
 .cup--paused .cup__label {
   color: var(--cafe-suave);
 }
+.cup__svg {
+  overflow: visible;
+}
 .cup__svg .fill {
-  transition: transform 220ms ease-out, opacity 220ms ease-out;
+  transition: transform 360ms var(--spring), opacity 320ms var(--ease);
   transform-origin: bottom;
 }
 .cup--paused .cup__svg .fill {
   transform: scaleY(0.08);
-  opacity: 0.25;
+  opacity: 0.2;
 }
 .cup--active .cup__svg .fill {
   transform: scaleY(1);
   opacity: 1;
 }
+/* vapor solo cuando está en marcha */
+.cup__svg .steam {
+  stroke: var(--matcha);
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0;
+}
+.cup--active .cup__svg .steam {
+  animation: steam 3s var(--ease) infinite;
+}
+.cup--active .cup__svg .steam:nth-of-type(2) {
+  animation-delay: 0.7s;
+}
 
+/* ============================ Estados ============================ */
 .state {
   min-height: 100%;
   display: grid;
@@ -358,20 +574,125 @@ button {
   color: var(--cafe-suave);
   padding: 40px;
   text-align: center;
+  font-size: 1.05rem;
 }
 .empty {
-  border: 1px dashed var(--borde);
+  border: 1.5px dashed var(--borde-calido);
   border-radius: var(--r-lg);
-  padding: 40px;
+  padding: 48px 32px;
   text-align: center;
   color: var(--cafe-suave);
+  background: rgba(251, 247, 239, 0.5);
+  max-width: 460px;
 }
 .error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: #f7e9e7;
   border: 1px solid #e8c7c1;
   color: var(--granate);
-  border-radius: var(--r-sm);
-  padding: 10px 14px;
+  border-radius: var(--r-md);
+  padding: 11px 15px;
   margin-bottom: 18px;
+  font-size: 0.92rem;
+}
+.error-banner::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--granate);
+  flex: 0 0 auto;
+}
+
+/* skeleton de carga: tarjetas fantasma que respiran */
+.card-skeleton {
+  height: 168px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--borde);
+  background: linear-gradient(100deg, var(--latte) 30%, var(--espuma) 50%, var(--latte) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================ Toast ============================ */
+.toast-stack {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--espresso);
+  color: var(--crema);
+  padding: 11px 16px;
+  border-radius: var(--r-md);
+  box-shadow: var(--sombra-3);
   font-size: 0.9rem;
+  font-weight: 500;
+  animation: toast-in 320ms var(--spring) both;
+}
+.toast__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.toast--on .toast__dot {
+  background: var(--matcha);
+}
+.toast--off .toast__dot {
+  background: var(--cafe-tenue);
+}
+
+/* ============================ keyframes ============================ */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* stagger de la rejilla */
+.grid > *:nth-child(1) {
+  animation-delay: 40ms;
+}
+.grid > *:nth-child(2) {
+  animation-delay: 90ms;
+}
+.grid > *:nth-child(3) {
+  animation-delay: 140ms;
+}
+.grid > *:nth-child(4) {
+  animation-delay: 190ms;
+}
+.grid > *:nth-child(5) {
+  animation-delay: 240ms;
+}
+.grid > *:nth-child(6) {
+  animation-delay: 290ms;
 }

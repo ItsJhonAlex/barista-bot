@@ -33,6 +33,9 @@ export function ToggleCup({
             <path d="M8 12 h16 v10 a8 8 0 0 1 -16 0 z" />
           </clipPath>
         </defs>
+        {/* vapor (solo visible cuando está en marcha, vía CSS) */}
+        <path className="steam" d="M14 9 q-1.6 -2.2 0 -4.4" strokeWidth="1.4" />
+        <path className="steam" d="M18 9 q-1.6 -2.2 0 -4.4" strokeWidth="1.4" />
         <g clipPath={`url(#${clipId})`}>
           <rect className="fill" x="8" y="12" width="16" height="20" fill="var(--matcha)" />
         </g>

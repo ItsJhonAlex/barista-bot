@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type AdminGuild, ApiError, type ModuleView, type SessionUser, api } from "./api.ts";
 import { Login } from "./components/Login.tsx";
 import { ModuleCard } from "./components/ModuleCard.tsx";
@@ -19,6 +19,23 @@ export function App() {
   if (phase.t === "loading") return <div className="state">Calentando la cafetera…</div>;
   if (phase.t === "login") return <Login />;
   return <Dashboard user={phase.user} />;
+}
+
+/** Logomark de taza para la barra superior. */
+function CupGlyph() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 36 36" aria-hidden="true" className="cupmark">
+      <path
+        d="M8 13 h16 v9 a8 8 0 0 1 -16 0 z"
+        fill="var(--latte)"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path d="M10.5 14.5 h11 v6.5 a5.5 5.5 0 0 1 -11 0 z" fill="var(--terracota)" />
+      <path d="M24 15 h3 a3 3 0 0 1 0 6 h-3" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
 }
 
 function Dashboard({ user }: { user: SessionUser }) {
@@ -45,10 +62,13 @@ function Dashboard({ user }: { user: SessionUser }) {
   return (
     <div className="shell">
       <header className="topbar">
-        <span className="topbar__brand">Barista</span>
+        <span className="topbar__brandwrap">
+          <CupGlyph />
+          <span className="topbar__brand">Barista</span>
+        </span>
         <div className="topbar__profile">
           {user.image ? <img className="avatar" src={user.image} alt="" /> : null}
-          <span>{user.name}</span>
+          <span className="topbar__name">{user.name}</span>
           <button type="button" className="btn-ghost" onClick={logout}>
             Salir
           </button>
@@ -75,10 +95,25 @@ function Dashboard({ user }: { user: SessionUser }) {
   );
 }
 
+interface ToastItem {
+  id: number;
+  label: string;
+  on: boolean;
+}
+
 function ModuleGrid({ guildId }: { guildId: string }) {
   const [modules, setModules] = useState<ModuleView[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const toastSeq = useRef(0);
+
+  const pushToast = (label: string, on: boolean) => {
+    toastSeq.current += 1;
+    const id = toastSeq.current;
+    setToasts((cur) => [...cur, { id, label, on }]);
+    setTimeout(() => setToasts((cur) => cur.filter((t) => t.id !== id)), 2600);
+  };
 
   useEffect(() => {
     setModules(null);
@@ -104,6 +139,7 @@ function ModuleGrid({ guildId }: { guildId: string }) {
         (cur) =>
           cur?.map((m) => (m.id === module.id ? { ...m, enabled: result.enabled } : m)) ?? null,
       );
+      pushToast(`${module.name} · ${result.enabled ? "servido" : "en pausa"}`, result.enabled);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "No se pudo cambiar el módulo.");
     } finally {
@@ -113,14 +149,24 @@ function ModuleGrid({ guildId }: { guildId: string }) {
 
   return (
     <>
-      <h1 className="page-title">La carta</h1>
-      <p className="page-sub">Sirve o pon en pausa cada módulo en este servidor.</p>
+      <div className="page-head">
+        <span className="eyebrow">La carta</span>
+        <h1 className="page-title">Módulos del servidor</h1>
+        <p className="page-sub">
+          Sirve o pon en pausa cada módulo. El cambio llega al bot al instante.
+        </p>
+      </div>
       {error ? <div className="error-banner">{error}</div> : null}
 
       {modules === null ? (
-        <p className="page-sub">Preparando la carta…</p>
+        <div className="grid" aria-hidden="true">
+          {Array.from({ length: 6 }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: placeholders estáticos de carga
+            <div key={i} className="card-skeleton" />
+          ))}
+        </div>
       ) : modules.length === 0 ? (
-        <div className="empty">Esta carta está vacía todavía.</div>
+        <div className="empty">Esta carta está vacía todavía. Activa tu primer módulo.</div>
       ) : (
         <div className="grid">
           {modules.map((module) => (
@@ -133,6 +179,17 @@ function ModuleGrid({ guildId }: { guildId: string }) {
           ))}
         </div>
       )}
+
+      {toasts.length > 0 ? (
+        <div className="toast-stack">
+          {toasts.map((t) => (
+            <div key={t.id} className={`toast ${t.on ? "toast--on" : "toast--off"}`}>
+              <span className="toast__dot" />
+              <span>{t.label}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </>
   );
 }

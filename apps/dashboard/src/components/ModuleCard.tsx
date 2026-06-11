@@ -13,7 +13,7 @@ export function ModuleCard({
 }) {
   return (
     <article className={`card ${module.enabled ? "card--active" : ""}`}>
-      <span className="eyebrow">{module.category ?? "módulo"}</span>
+      <span className="stamp">{module.category ?? "módulo"}</span>
       <h3 className="card__name">{module.name}</h3>
       <p className="card__desc">{module.description}</p>
       <div className="card__foot">
