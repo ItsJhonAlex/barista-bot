@@ -21,6 +21,11 @@ export interface ModuleManifest {
    * persiste en BD: fluye manifest → api → dashboard vía el registry en memoria.
    */
   readonly details?: string;
+  /**
+   * Lista de "qué hace" el módulo, en lenguaje del usuario (no implementación). Se muestra
+   * como funciones en la página de ajustes. Ej: "Da la bienvenida a nuevos miembros".
+   */
+  readonly features?: readonly string[];
   readonly version: string; // semver
   /** Permisos del bot que el módulo necesita en el servidor. */
   readonly requiredBotPermissions?: PermissionsString[];

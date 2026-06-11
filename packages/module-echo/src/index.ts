@@ -33,6 +33,12 @@ export default defineModule({
       "Está pensado para comprobar de un vistazo que el toggle por servidor y la página de " +
       "ajustes funcionan: cambia el prefijo, fuerza mayúsculas o limita la longitud y verás " +
       "el efecto en el siguiente mensaje, sin reiniciar el bot.",
+    features: [
+      "Repite en el canal cada mensaje de texto que escribe un miembro.",
+      "Antepone un prefijo configurable al eco.",
+      "Puede responder en mayúsculas y recortar el mensaje a una longitud máxima.",
+      "Nunca responde a otros bots (evita bucles).",
+    ],
     version: "1.1.0",
     category: "prueba",
   },

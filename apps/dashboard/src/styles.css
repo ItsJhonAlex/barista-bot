@@ -945,3 +945,104 @@ button {
   font-size: 0.88rem;
   animation: rise-in 240ms var(--ease) both;
 }
+
+/* ============================ Documentación del módulo ============================ */
+.doc-section {
+  margin-bottom: 30px;
+}
+.doc-section__title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin: 0 0 12px;
+  color: var(--espresso);
+}
+.feature-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.feature-list li {
+  position: relative;
+  padding-left: 22px;
+  color: var(--cafe-suave);
+  line-height: 1.5;
+  font-size: 0.96rem;
+}
+.feature-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--matcha);
+}
+.cmd-list {
+  display: grid;
+  gap: 14px;
+}
+.cmd {
+  background: var(--latte);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+}
+.cmd__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cmd__name {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--terracota-700);
+  background: rgba(192, 98, 63, 0.06);
+  border: 1px solid var(--borde-calido);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+}
+.cmd__desc {
+  color: var(--cafe-suave);
+  font-size: 0.92rem;
+}
+.opt-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0 0 0 14px;
+  display: grid;
+  gap: 8px;
+  border-left: 2px solid var(--borde);
+}
+.opt {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+}
+.opt__name {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--espresso);
+}
+.opt__type {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cafe-tenue);
+  background: var(--crema);
+  border-radius: var(--r-sm);
+  padding: 1px 7px;
+}
+.opt__desc {
+  color: var(--cafe-suave);
+}
+.opt .opt-list {
+  flex-basis: 100%;
+}

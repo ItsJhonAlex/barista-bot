@@ -14,6 +14,15 @@ const manifest: ModuleManifest = {
   id: "core",
   name: "Núcleo",
   description: "Comandos transversales del bot: estado, información y ayuda.",
+  details:
+    "El núcleo es la base del bot: aporta los comandos que siempre están disponibles en " +
+    "todos los servidores, pase lo que pase con el resto de módulos. Por eso no se puede " +
+    "desactivar. Sus comandos se registran de forma global en Discord.",
+  features: [
+    "Disponible siempre en todos los servidores; no se puede desactivar.",
+    "Comprueba el estado y la latencia del bot.",
+    "Muestra información del bot y la lista de módulos activos del servidor.",
+  ],
   version: "1.0.0",
   category: "núcleo",
   requiredBotPermissions: [],

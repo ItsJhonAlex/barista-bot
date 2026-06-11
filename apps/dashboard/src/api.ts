@@ -86,6 +86,21 @@ export interface JsonSchema {
   required?: string[];
 }
 
+/** Opción/subcomando documentado de un slash command. */
+export interface OptionDoc {
+  name: string;
+  description: string;
+  type: string;
+  required: boolean;
+  options?: OptionDoc[];
+}
+
+export interface CommandDoc {
+  name: string;
+  description: string;
+  options: OptionDoc[];
+}
+
 export interface ModuleDetailView {
   module: {
     id: string;
@@ -97,6 +112,9 @@ export interface ModuleDetailView {
     requiredBotPermissions: string[];
     enabled: boolean;
     locked: boolean;
+    features: string[];
+    commands: CommandDoc[];
+    events: string[];
   };
   schema: JsonSchema;
   config: Record<string, unknown>;

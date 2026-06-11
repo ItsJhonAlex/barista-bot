@@ -5,6 +5,7 @@ import { auditLog, globalModules, guildModules } from "@barista/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import type { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { type CommandDoc, commandDocs, eventNames } from "./module-docs.ts";
 import { allModules, getModule } from "./registry.ts";
 
 /**
@@ -174,6 +175,12 @@ export interface ModuleDetailView {
     requiredBotPermissions: string[];
     enabled: boolean;
     locked: boolean;
+    /** "Qué hace" en lenguaje del usuario. */
+    features: string[];
+    /** Comandos documentados (nombre, descripción, opciones/subcomandos). */
+    commands: CommandDoc[];
+    /** Eventos del Gateway a los que reacciona (técnico). */
+    events: string[];
   };
   schema: ConfigJsonSchema;
   config: Record<string, unknown>;
@@ -199,7 +206,7 @@ export async function getModuleDetail(
     .limit(1);
 
   const enabled = await effectiveEnabled(db, guildId, moduleId);
-  const { id, name, description, details, category, version, requiredBotPermissions } =
+  const { id, name, description, details, features, category, version, requiredBotPermissions } =
     mod.manifest;
 
   return {
@@ -213,6 +220,9 @@ export async function getModuleDetail(
       requiredBotPermissions: requiredBotPermissions ?? [],
       enabled,
       locked: isLockedModule(id),
+      features: features ? [...features] : [],
+      commands: commandDocs(mod),
+      events: eventNames(mod),
     },
     schema: buildConfigJsonSchema(mod),
     config: resolveModuleConfig(mod, row?.config),
