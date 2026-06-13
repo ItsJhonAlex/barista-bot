@@ -25,7 +25,6 @@ export {
   EventDispatcher,
 } from "./dispatcher.ts";
 export {
-  BotHasPermissions,
   Cooldown,
   createDefaultPreconditions,
   GuildOnly,

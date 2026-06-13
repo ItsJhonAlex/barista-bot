@@ -1,7 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import { type ContextDeps, buildModuleContext } from "./build-context.ts";
 import {
-  BotHasPermissions,
   GuildOnly,
   type Precondition,
   type PreconditionRegistry,
@@ -16,15 +15,13 @@ export interface CommandDispatcherDeps extends ContextDeps {
 
 /**
  * Las preconditions implícitas que el core aplica SIEMPRE, en orden, antes de las que declara
- * el comando. GuildOnly corta los comandos fuera de servidor; las de permisos son stubs M1
- * (pasan salvo que el comando/módulo declare requisitos) y Cooldown lo aporta el módulo cuando
- * lo necesite. El gate (`ModuleEnabled`) se comprueba aparte, antes que esta cadena.
+ * el comando. `GuildOnly` corta los comandos fuera de servidor; `RequirePermissions` deriva del
+ * `default_member_permissions` del comando si lo hubiera. El permiso del **bot**
+ * (`manifest.requiredBotPermissions`) se comprueba aparte, en `#botHasRequiredPermissions`,
+ * porque necesita el módulo del `entry` (no derivable solo del `ModuleCommand`). El gate
+ * (`ModuleEnabled`) se comprueba antes que esta cadena.
  */
-const IMPLICIT_PRECONDITIONS: readonly Precondition[] = [
-  GuildOnly,
-  RequirePermissions,
-  BotHasPermissions,
-];
+const IMPLICIT_PRECONDITIONS: readonly Precondition[] = [GuildOnly, RequirePermissions];
 
 /**
  * El router de comandos: espejo del `EventDispatcher`. El bot registra UN listener de
@@ -60,6 +57,16 @@ export class CommandDispatcher {
       return;
     }
 
+    // Permisos del bot declarados por el módulo (manifest.requiredBotPermissions). Se comprueba
+    // aquí, no en la cadena, porque la lista vive en el manifest del módulo del `entry`.
+    if (!this.#botHasRequiredPermissions(interaction, entry)) {
+      await this.#replyEphemeral(
+        interaction,
+        "No tengo los permisos necesarios en este servidor para ejecutar este comando.",
+      );
+      return;
+    }
+
     // Cadena de preconditions: implícitas primero, luego las que declara el comando.
     const failure = await this.#runPreconditions(interaction, entry);
     if (failure !== null) {
@@ -79,6 +86,20 @@ export class CommandDispatcher {
         await this.#replyEphemeral(interaction, "Algo salió mal al ejecutar el comando.");
       }
     }
+  }
+
+  /**
+   * ¿Tiene el bot, en este servidor, los permisos que el módulo declara en
+   * `manifest.requiredBotPermissions`? Los deriva de `interaction.appPermissions` (permisos
+   * efectivos de la app en el canal). Sin permisos requeridos, pasa. Determinista: no toca red.
+   */
+  #botHasRequiredPermissions(
+    interaction: ChatInputCommandInteraction,
+    entry: CommandEntry,
+  ): boolean {
+    const required = entry.mod.manifest.requiredBotPermissions;
+    if (!required || required.length === 0) return true;
+    return interaction.appPermissions?.has(required) ?? false;
   }
 
   /** Ejecuta la cadena de preconditions en orden; devuelve el mensaje del primer fallo o null. */

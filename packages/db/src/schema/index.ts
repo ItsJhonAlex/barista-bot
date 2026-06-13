@@ -7,7 +7,7 @@ export * from "./enums.ts";
 export * from "./tables.ts";
 export * from "./types.ts";
 
-import type { auditLog, guildModules, guilds, moduleRegistry } from "./tables.ts";
+import type { auditLog, guildModules, guilds, modActions, moduleRegistry } from "./tables.ts";
 
 /** Tipos de fila derivados (preferidos a tipos escritos a mano — docs/13 §2). */
 export type GuildRow = typeof guilds.$inferSelect;
@@ -16,3 +16,5 @@ export type ModuleRegistryRow = typeof moduleRegistry.$inferSelect;
 export type GuildModuleRow = typeof guildModules.$inferSelect;
 export type AuditLogRow = typeof auditLog.$inferSelect;
 export type AuditLogInsert = typeof auditLog.$inferInsert;
+export type ModActionRow = typeof modActions.$inferSelect;
+export type ModActionInsert = typeof modActions.$inferInsert;

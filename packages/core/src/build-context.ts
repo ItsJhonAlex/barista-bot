@@ -1,3 +1,4 @@
+import type { Database } from "@barista/db/client";
 import type { DiscordService } from "@barista/discord";
 import type { Client } from "discord.js";
 import type { z } from "zod";
@@ -19,6 +20,8 @@ export interface ContextDeps {
   readonly discord: DiscordService;
   readonly log: Logger;
   readonly createStore: (moduleId: string, guildId: string) => ModuleStore;
+  /** Cliente Drizzle inyectado por el bot; fluye a `ModuleContext.db` (ADR-017). */
+  readonly db: Database;
 }
 
 /**
@@ -53,5 +56,6 @@ export async function buildModuleContext(
     log: deps.log,
     store: deps.createStore(mod.manifest.id, guildId),
     catalog: createCatalog(deps.registry, deps.gate, guildId),
+    db: deps.db,
   };
 }

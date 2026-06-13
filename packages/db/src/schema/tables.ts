@@ -8,7 +8,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
-import { auditActor } from "./enums.ts";
+import { auditActor, modActionType } from "./enums.ts";
 import type { GuildSettings, StoredManifest } from "./types.ts";
 
 // Los IDs de Discord son snowflakes de 64 bits → se guardan como `text` en toda la pila.
@@ -84,6 +84,31 @@ export const auditLog = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [index("audit_by_guild").on(t.guildId, t.createdAt)],
+);
+
+/**
+ * Historial de sanciones de moderación (módulo `moderation`, ADR-017). Es la **fuente de
+ * verdad** de las acciones del módulo: el bot escribe aquí (no en `audit_log`, reservado a las
+ * acciones del dashboard). Append-only en la práctica; `untimeout`/`unban` añaden su propia
+ * fila y marcan inactiva (`active=false`, `revokedAt`) la sanción que revierten.
+ */
+export const modActions = pgTable(
+  "mod_actions",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    guildId: text("guild_id")
+      .notNull()
+      .references(() => guilds.id, { onDelete: "cascade" }),
+    type: modActionType("type").notNull(),
+    targetUserId: text("target_user_id").notNull(), // snowflake del usuario sancionado
+    moderatorId: text("moderator_id").notNull(), // snowflake del moderador que la ejecutó
+    reason: text("reason"),
+    expiresAt: timestamp("expires_at"), // cuándo caduca (timeout); null si no aplica
+    active: boolean("active").default(true).notNull(), // false al revertir (untimeout/unban)
+    revokedAt: timestamp("revoked_at"), // cuándo se revirtió, si aplica
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("mod_by_guild_user").on(t.guildId, t.targetUserId)],
 );
 
 /** Store clave-valor namespaced por (moduleId, guildId). Lo usa `ctx.store` de los módulos. */

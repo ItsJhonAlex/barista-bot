@@ -6,6 +6,7 @@
 import type { BaristaModule } from "@barista/core";
 import core from "@barista/module-core";
 import echo from "@barista/module-echo";
+import moderation from "@barista/module-moderation";
 
 /**
  * Orden estable: `core` primero (siempre activo, comandos globales), luego los opcionales.
@@ -19,4 +20,5 @@ import echo from "@barista/module-echo";
 export const modules: readonly BaristaModule[] = [
   core as unknown as BaristaModule,
   echo as unknown as BaristaModule,
+  moderation as unknown as BaristaModule,
 ];

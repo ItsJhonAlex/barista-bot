@@ -75,6 +75,7 @@
       "name": "@barista/core",
       "version": "0.0.0",
       "dependencies": {
+        "@barista/db": "workspace:*",
         "@barista/discord": "workspace:*",
         "discord.js": "^14.16.3",
         "zod": "^3.24.1",
@@ -115,6 +116,17 @@
         "zod": "^3.24.1",
       },
     },
+    "packages/module-moderation": {
+      "name": "@barista/module-moderation",
+      "version": "1.0.0",
+      "dependencies": {
+        "@barista/core": "workspace:*",
+        "@barista/db": "workspace:*",
+        "@barista/discord": "workspace:*",
+        "discord.js": "^14.16.3",
+        "zod": "^3.24.1",
+      },
+    },
     "packages/modules": {
       "name": "@barista/modules",
       "version": "0.0.0",
@@ -122,6 +134,7 @@
         "@barista/core": "workspace:*",
         "@barista/module-core": "workspace:*",
         "@barista/module-echo": "workspace:*",
+        "@barista/module-moderation": "workspace:*",
       },
     },
   },
@@ -183,6 +196,8 @@
     "@barista/module-core": ["@barista/module-core@workspace:packages/module-core"],
 
     "@barista/module-echo": ["@barista/module-echo@workspace:packages/module-echo"],
+
+    "@barista/module-moderation": ["@barista/module-moderation@workspace:packages/module-moderation"],
 
     "@barista/modules": ["@barista/modules@workspace:packages/modules"],
 

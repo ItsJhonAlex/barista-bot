@@ -1,6 +1,6 @@
 {
-  "name": "@barista/modules",
-  "version": "0.0.0",
+  "name": "@barista/module-moderation",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "@barista/core": "workspace:*",
-    "@barista/module-core": "workspace:*",
-    "@barista/module-echo": "workspace:*",
-    "@barista/module-moderation": "workspace:*"
+    "@barista/db": "workspace:*",
+    "@barista/discord": "workspace:*",
+    "discord.js": "^14.16.3",
+    "zod": "^3.24.1"
   }
 }

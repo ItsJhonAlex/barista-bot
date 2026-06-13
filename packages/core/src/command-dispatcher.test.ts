@@ -19,9 +19,13 @@ function command(name: string, run: ModuleCommand["run"], preconditions?: string
   };
 }
 
-function moduleWith(id: string, commands: ModuleCommand[]) {
+function moduleWith(
+  id: string,
+  commands: ModuleCommand[],
+  requiredBotPermissions?: import("discord.js").PermissionsString[],
+) {
   return defineModule({
-    manifest: { id, name: id, description: "test", version: "1.0.0" },
+    manifest: { id, name: id, description: "test", version: "1.0.0", requiredBotPermissions },
     configSchema: z.object({}),
     commands,
   });
@@ -59,6 +63,8 @@ function buildDeps(
     discord: { sendMessage: vi.fn() } as never,
     log,
     createStore: createMemoryStore(),
+    // Estos tests no ejercen `ctx.db`; un stub vacío basta (ADR-017).
+    db: {} as never,
     preconditions,
   };
 }
@@ -112,6 +118,30 @@ describe("CommandDispatcher", () => {
 
     expect(run).not.toHaveBeenCalled();
     expect(interaction.reply).toHaveBeenCalledTimes(1);
+  });
+
+  it("no ejecuta run si al bot le faltan los permisos que declara el manifest", async () => {
+    const run = vi.fn();
+    const registry = new ModuleRegistry();
+    registry.register(moduleWith("core", [command("ping", run)], ["BanMembers"]));
+    // appPermissions.has(...) = false → el bot no tiene BanMembers en este canal.
+    const interaction = fakeInteraction("ping", { appPermissions: { has: () => false } });
+
+    await new CommandDispatcher(buildDeps(registry, enabled)).dispatch(interaction);
+
+    expect(run).not.toHaveBeenCalled();
+    expect(interaction.reply).toHaveBeenCalledTimes(1);
+  });
+
+  it("ejecuta run si el bot tiene los permisos que declara el manifest", async () => {
+    const run = vi.fn();
+    const registry = new ModuleRegistry();
+    registry.register(moduleWith("core", [command("ping", run)], ["BanMembers"]));
+    const interaction = fakeInteraction("ping", { appPermissions: { has: () => true } });
+
+    await new CommandDispatcher(buildDeps(registry, enabled)).dispatch(interaction);
+
+    expect(run).toHaveBeenCalledTimes(1);
   });
 
   it("corta en la primera precondition que falla y respeta el orden", async () => {

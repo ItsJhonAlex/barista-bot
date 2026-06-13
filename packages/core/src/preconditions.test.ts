@@ -1,19 +1,12 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { describe, expect, it } from "vitest";
 import type { ModuleCommand } from "./contract.ts";
-import {
-  BotHasPermissions,
-  Cooldown,
-  GuildOnly,
-  PreconditionRegistry,
-  RequirePermissions,
-} from "./preconditions.ts";
+import { Cooldown, GuildOnly, PreconditionRegistry, RequirePermissions } from "./preconditions.ts";
 
 function command(
   name: string,
   opts: {
     defaultPerms?: bigint;
-    requiredBotPermissions?: import("discord.js").PermissionsString[];
   } = {},
 ): ModuleCommand {
   const builder = new SlashCommandBuilder().setName(name).setDescription("d");
@@ -64,13 +57,6 @@ describe("RequirePermissions", () => {
       fakeInteraction({ memberPermissions: { has: () => true } }),
       command("cmd", { defaultPerms: PermissionFlagsBits.BanMembers }),
     );
-    expect(res.ok).toBe(true);
-  });
-});
-
-describe("BotHasPermissions", () => {
-  it("pasa si el módulo no requiere permisos de bot (sin contexto)", async () => {
-    const res = await BotHasPermissions(fakeInteraction(), command("cmd"));
     expect(res.ok).toBe(true);
   });
 });

@@ -1,3 +1,4 @@
+import type { Database } from "@barista/db/client";
 import type { DiscordService } from "@barista/discord";
 import type {
   ChatInputCommandInteraction,
@@ -9,6 +10,7 @@ import type {
   SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 import type { z } from "zod";
+import type { Precondition } from "./preconditions.ts";
 
 /** Metadatos identificativos del módulo. */
 export interface ModuleManifest {
@@ -79,6 +81,13 @@ export interface ModuleContext<Config = unknown> {
   readonly store: ModuleStore;
   /** Catálogo read-only de módulos activos en este guild (lo usa /help). ADR-015. */
   readonly catalog: ModuleCatalog;
+  /**
+   * Cliente Drizzle de @barista/db/client, inyectado por el bot (ADR-017). Lo usan los módulos
+   * con tabla dedicada (p. ej. `moderation` → `mod_actions`) para consultar/escribir con tipos
+   * derivados. El core lo importa **type-only**; solo existe en el proceso del bot, nunca en el
+   * dashboard (frontera schema/client intacta).
+   */
+  readonly db: Database;
 }
 
 /** Manejador de un evento del Gateway. */
@@ -125,6 +134,13 @@ export interface BaristaModule<Schema extends z.ZodTypeAny = z.ZodTypeAny> {
   };
   /** Comandos slash que aporta. */
   readonly commands?: ModuleCommand<z.infer<Schema>>[];
+  /**
+   * Preconditions con nombre que el módulo aporta al registro global, además de las built-in
+   * del core (ADR-017). El bot las registra en el `PreconditionRegistry` al construir el
+   * registry; una colisión de nombre con otra ya registrada aborta el arranque. Los comandos
+   * las referencian por string en `command.preconditions`.
+   */
+  readonly preconditions?: Record<string, Precondition>;
 
   // ---- Ciclo de vida (todos opcionales) ----
   /** Una vez, al cargar el módulo en el proceso (no por guild). */

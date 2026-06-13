@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, PermissionsString } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import type { ModuleCommand } from "./contract.ts";
 
 /** Resultado de una precondition: ok, o fallo con el mensaje (efímero) para el usuario. */
@@ -37,21 +37,6 @@ export const RequirePermissions: Precondition = (interaction, command) => {
 };
 
 /**
- * El **bot** tiene en el canal/servidor los permisos que el módulo declara en
- * `manifest.requiredBotPermissions`. El módulo del comando se inyecta vía la clausura del
- * dispatcher; aquí, sin ese contexto, no podemos derivarlos del `ModuleCommand` solo, así que
- * en el stub M1 pasamos salvo que la interacción exponga `appPermissions` insuficientes para
- * una lista pasada por clausura. Definido y tipado; core no lo encadena aún.
- */
-export const BotHasPermissions: Precondition = (interaction, command) => {
-  const required = (command as { requiredBotPermissions?: PermissionsString[] })
-    .requiredBotPermissions;
-  if (!required || required.length === 0) return OK;
-  if (interaction.appPermissions?.has(required)) return OK;
-  return { ok: false, message: "No tengo los permisos necesarios para ejecutar este comando." };
-};
-
-/**
  * Cooldown anti-spam en memoria por `(guildId, userId, commandName)`. `windowMs` es la ventana
  * mínima entre dos invocaciones. La marca se guarda en la primera llamada permitida; dentro de
  * la ventana, las siguientes fallan. Es una fábrica para que cada uso tenga su propio estado.
@@ -84,6 +69,11 @@ export class PreconditionRegistry {
     this.#byName.set(name, fn);
   }
 
+  /** ¿Hay ya una precondition registrada con este nombre? Para detectar colisiones al arrancar. */
+  has(name: string): boolean {
+    return this.#byName.has(name);
+  }
+
   resolve(names: readonly string[]): Precondition[] {
     return names.map((name) => {
       const fn = this.#byName.get(name);
@@ -98,7 +88,6 @@ export function createDefaultPreconditions(cooldownMs = 3_000): PreconditionRegi
   const reg = new PreconditionRegistry();
   reg.register("GuildOnly", GuildOnly);
   reg.register("RequirePermissions", RequirePermissions);
-  reg.register("BotHasPermissions", BotHasPermissions);
   reg.register("Cooldown", Cooldown(cooldownMs));
   return reg;
 }

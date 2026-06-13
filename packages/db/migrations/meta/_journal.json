@@ -15,6 +15,13 @@
       "when": 1781124080294,
       "tag": "0001_gorgeous_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781385528569,
+      "tag": "0002_massive_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

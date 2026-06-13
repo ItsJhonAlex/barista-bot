@@ -28,6 +28,8 @@ function buildDeps(registry: ModuleRegistry, gate: ModuleGate): DispatcherDeps {
     discord: { sendMessage: vi.fn() } as never,
     log,
     createStore: createMemoryStore(),
+    // Estos tests no ejercen `ctx.db`; un stub vacío basta (ADR-017).
+    db: {} as never,
   };
 }
 
