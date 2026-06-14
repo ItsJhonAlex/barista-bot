@@ -69,10 +69,7 @@ describe.skipIf(!url)("mod_actions (integración)", () => {
 
     await handle.db.delete(guilds).where(eq(guilds.id, tmpGuild));
 
-    const rows = await handle.db
-      .select()
-      .from(modActions)
-      .where(eq(modActions.guildId, tmpGuild));
+    const rows = await handle.db.select().from(modActions).where(eq(modActions.guildId, tmpGuild));
     expect(rows).toHaveLength(0); // la cascade de la FK borró la sanción
   });
 });
