@@ -4,6 +4,7 @@ import type {
   ChatInputCommandInteraction,
   Client,
   ClientEvents,
+  Message,
   PermissionsString,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
@@ -110,6 +111,24 @@ export interface ModuleCommand<Config = unknown> {
   readonly run: (
     ctx: ModuleContext<Config>,
     interaction: ChatInputCommandInteraction,
+  ) => unknown | Promise<unknown>;
+}
+
+/**
+ * Definición de un prefix command (scaffold, ADR-018). Comparte la "acción" con su gemelo slash
+ * vía la `shared.ts` del comando: el `run` parsea los `args` del mensaje y delega en esa función.
+ *
+ * NO forma parte aún de `BaristaModule` ni de `defineModule`: cada módulo lo exporta como
+ * `prefixCommands` desde su `index.ts` (typechequea y se exporta), pero todavía ningún runtime lo
+ * despacha. El despachador (messageCreate → parser → dispatch) llegará en un ADR futuro.
+ */
+export interface PrefixCommand<Config = unknown> {
+  readonly name: string;
+  readonly aliases?: readonly string[];
+  readonly run: (
+    ctx: ModuleContext<Config>,
+    message: Message,
+    args: readonly string[],
   ) => unknown | Promise<unknown>;
 }
 

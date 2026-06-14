@@ -11,6 +11,7 @@ export type {
   ModuleContext,
   ModuleManifest,
   ModuleStore,
+  PrefixCommand,
   SlashBuilder,
 } from "./contract.ts";
 export { buildModuleContext, type ContextDeps } from "./build-context.ts";
