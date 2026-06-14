@@ -17,5 +17,9 @@
     "@sapphire/framework": "^5.3.6",
     "discord.js": "^14.16.3",
     "drizzle-orm": "^0.38.3"
+  },
+  "devDependencies": {
+    "@barista/module-core": "workspace:*",
+    "@barista/module-echo": "workspace:*"
   }
 }
